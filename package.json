@@ -1,5 +1,5 @@
 {
-  "name": "exposed-electron",
+  "name": "whos-most-likely-to",
   "version": "1.0.0",
   "description": "Exposed men som web-server med electron packaging",
   "main": "main.js",
