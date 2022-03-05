@@ -1,14 +1,26 @@
+/*
+TODO
+  - Screen when voted
+  - Aesthetics
+  - Playtest
+  - Add more questions
+
+
+*/
+
 const http = require('http');
 const WebSocketServer = require('websocket').server;
 const fs = require('fs');
 const path = require('path');
 const serveStatic = require('serve-static');
+const { markAsUntransferable } = require('worker_threads');
 var serve = serveStatic(__dirname + '/public', { 'index': ['game.html'] });
 let currentVotes = {};
 let currentQuestion = ""
 let questionTimeout;
 let possibleVoters; 
-
+let publicVoters
+let questionInProgress = false;
 
 process.on("message", (message) => {
     switch (message) {
@@ -82,20 +94,22 @@ function nextQuestion() {
             possibleVoters++;
         }
     }
+    questionInProgress = true;
     let p1 = getRandomKeyFromMap(players);
     let p2
     do {
         p2 = getRandomKeyFromMap(players);
     } while (p1 === p2);
     currentVotes = {}
-    currentVotes[p1] = 0;
-    currentVotes[p2] = 0;
+    currentVotes[p1] = {votes: 0, voters: [], name: players.get(p1).name};
+    currentVotes[p2] = {votes: 0, voters: [], name: players.get(p2).name};
+    publicVoters = Math.random() < config.PUBLIC_VOTING_PERCENTAGE / 100;
     let message = {
         type: 'showQuestion',
         data: {
             question: currentQuestion,
-            person1: {id: p1, username: players.get(p1).name},
-            person2: {id: p2, username: players.get(p2).name}
+            person1: {id: p1, name: players.get(p1).name},
+            person2: {id: p2, name: players.get(p2).name}
         }
     }
     console.log(message);
@@ -111,18 +125,24 @@ function showQuestionResults() {
     for (const [key, val] of players) {
         val.allowed = false;
     }
+    questionInProgress = false;
+
     let p1ID = Object.keys(currentVotes)[0];
     let p2ID = Object.keys(currentVotes)[1];
-    //let public = Math.random > 0.3
-
     let message = {
         type: 'showQuestionResults',
         data: {
             question: currentQuestion,
-            person1: {name: players.get(p1ID).name, votes: currentVotes[p1ID]},
-            person2: {name: players.get(p2ID).name, votes: currentVotes[p2ID]},
-            totalVotes: Object.values(currentVotes).reduce((a, b) => a + b),
+            totalVotes: Object.values(currentVotes).reduce((a, b) => a + b.votes, 0),
+            publicVoters: publicVoters,
         }
+    }
+    if (publicVoters) {
+        message.data.person1 = {name: currentVotes[p1ID].name, votes: currentVotes[p1ID].votes, voters: currentVotes[p1ID].voters};
+        message.data.person2 = {name: currentVotes[p2ID].name, votes: currentVotes[p2ID].votes, voters: currentVotes[p2ID].voters};
+    } else {
+        message.data.person1 = {name: currentVotes[p1ID].name, votes: currentVotes[p1ID].votes};
+        message.data.person2 = {name: currentVotes[p2ID].name, votes: currentVotes[p2ID].votes};
     }
     wsServer.broadcast(JSON.stringify(message));
 }
@@ -149,6 +169,10 @@ wsServer.on('request', (request) => {
                         connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name too long" } }));
                         return;
                     }
+                    if (msg.data === "") {
+                        connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name cannot be empty" } }));
+                        return;
+                    }
                     if (thisPlayer.name !== undefined) {
                         names.splice(names.indexOf(thisPlayer.name), 1);
                     }
@@ -167,13 +191,14 @@ wsServer.on('request', (request) => {
                             connection.send(JSON.stringify({ type: 'return', data: { from: "vote", result: "You can't vote anymore" } }));
                             return;
                         }
-                        currentVotes[msg.data]++;
+                        currentVotes[msg.data].votes++;
+                        currentVotes[msg.data].voters.push(thisPlayer.name);
                         thisPlayer.voted = true;
-                        connection.send(JSON.stringify({ type: 'return', data: { from: "vote", result: true } }));
+                        connection.send(JSON.stringify({ type: 'return', data: { from: "vote", result: true, publicVoters: publicVoters } }));
 
-                        console.log(Object.values(currentVotes).reduce((a, b) => a + b), possibleVoters)
+                        console.log(Object.values(currentVotes).reduce((a, b) => a + b.votes, 0), possibleVoters)
 
-                        if (Object.values(currentVotes).reduce((a, b) => a + b) === possibleVoters) {
+                        if (Object.values(currentVotes).reduce((a, b) => a + b.votes, 0) === possibleVoters && questionInProgress) {
                             console.log("Votes done");
                             clearTimeout(questionTimeout);
                             showQuestionResults();
@@ -203,11 +228,21 @@ wsServer.on('request', (request) => {
         })
 
     connection.on('close', (connection) => {
-        console.log('Connection closed');
+        console.log('Connection closed with id: ' + id + ', name: ' + thisPlayer.name);
         if (thisPlayer.name !== undefined) {
+            console.log("Removing " + thisPlayer.name + " from list, index " + names.indexOf(thisPlayer.name));
+            if (thisPlayer.allowed && questionInProgress && !thisPlayer.voted) {
+                possibleVoters--;
+                if (Object.values(currentVotes).reduce((a, b) => a + b.votes, 0) === possibleVoters) {
+                    console.log("Votes done");
+                    clearTimeout(questionTimeout);
+                    showQuestionResults();
+                }
+            }
             names.splice(names.indexOf(thisPlayer.name), 1);
             wsServer.broadcastUTF(JSON.stringify({ type: 'playerList', data: names }));
         }
+        players.delete(id);
 
     })
 })
@@ -253,11 +288,14 @@ process.stdin.on('data', (data) => {
                     
                 }
                 console.log(info);
-            } /*else if (data.startsWith("eval")) {
-                eval(data.split(" ")[1]);   //DANGEROUS, only for dev, remove in production
-            }*/ else {
+            } else if (data.startsWith("eval")) {
+                //DANGEROUS, only for dev, remove in production
+                eval(data.split(" ").slice(1).join(" "));
+            } else {
                 console.log("Unknown command");
             }
             break;
     }
 })
+
+console.log("Server started");

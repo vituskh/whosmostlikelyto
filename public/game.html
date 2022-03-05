@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,6 +8,7 @@
     <title>Hvem i dette rum?</title>
     <link rel="stylesheet" href="./game.css">
 </head>
+
 <body>
     <div class="parentFlex">
         <div class="flexGame" id="loginScreen">
@@ -40,6 +42,10 @@
 
             </span>
         </div>
+        <div hidden class="hidden flexGame" id="afterVote">
+            <h1>Du har stemt på <span id="votedOn"></span></h1>
+            <span id="publicVotingMsg"></span>
+        </div>
         <div hidden class="hidden flexGame" id="questionResults">
             <h1 id="questionResultText"></h1>
             <span id="personResultsContainer">
@@ -54,12 +60,13 @@
         </div>
         <div id="flexPlayerList">
             <strong>Spillere</strong>
-            <ul id="playerList"> 
+            <ul id="playerList">
 
             </ul>
         </div>
     </div>
-    
+
     <script src="game.js"></script>
 </body>
+
 </html>

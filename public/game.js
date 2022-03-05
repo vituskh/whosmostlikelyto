@@ -1,7 +1,7 @@
 console.log("Loaded game.js");
 
 var socket = new WebSocket("ws://" + window.location.hostname + ":8080");
-var username = "";
+var myName = "";
 var nameElements = document.getElementsByClassName("name");
 var voteIds = {
     person1: "aaaaa",
@@ -34,7 +34,7 @@ socket.onmessage = (e) => {
                     }
                         
                     
-                    username = msg.data.other;
+                    myName = msg.data.other;
                     if (document.getElementById("loginScreen").hidden === false) {
                         hide(document.getElementById("loginScreen"));
                         show(document.getElementById("lobby"));
@@ -43,20 +43,21 @@ socket.onmessage = (e) => {
             }
             break;
         case "showQuestion":
-            if (username !== "") {
+            if (myName !== "") {
                 hide(document.getElementById("lobby"));
                 show(document.getElementById("question"));
                 hide(document.getElementById("loginScreen"));
                 hide(document.getElementById("questionResults"));
 
                 document.getElementById("questionText").innerHTML = msg.data.question;
-                document.getElementById("person1").innerHTML = msg.data.person1.username;
-                document.getElementById("person2").innerHTML = msg.data.person2.username;
+                document.getElementById("person1").innerHTML = msg.data.person1.name;
+                document.getElementById("person2").innerHTML = msg.data.person2.name;
                 voteIds.person1 = msg.data.person1.id;
                 voteIds.person2 = msg.data.person2.id;
             }
             break;
         case "showQuestionResults":
+            if (myName !== "") {
             
             hide(document.getElementById("question"));
             show(document.getElementById("questionResults"));
@@ -64,11 +65,19 @@ socket.onmessage = (e) => {
             let person1percent = (msg.data.person1.votes / msg.data.totalVotes) * 100;
             let person2percent = (msg.data.person2.votes / msg.data.totalVotes) * 100;
             //Math.round((num + Number.EPSILON) * 100) / 100 rounds to 2 decimal places
-            document.getElementById("person1Result").innerHTML = msg.data.person1.name + ": " + Math.round((person1percent + Number.EPSILON) * 100) / 100+ "%";
-            document.getElementById("person2Result").innerHTML = msg.data.person2.name + ": " + Math.round((person2percent + Number.EPSILON) * 100) / 100+ "%";
+            if(msg.data.publicVoters === true){
+                document.getElementById("person1Result").innerHTML = `${msg.data.person1.name} (${Math.round((person1percent + Number.EPSILON) * 100) / 100}%)<br><br>
+                Voters: ${msg.data.person1.voters.join("<br> ")}`;
+                document.getElementById("person2Result").innerHTML = `${msg.data.person2.name} (${Math.round((person2percent + Number.EPSILON) * 100) / 100}%)<br><br>
+                Voters: ${msg.data.person2.voters.join("<br> ")}`;
+            } else {
+                document.getElementById("person1Result").innerHTML = `${msg.data.person1.name} (${Math.round((person1percent + Number.EPSILON) * 100) / 100}%)`;
+                document.getElementById("person2Result").innerHTML = `${msg.data.person2.name} (${Math.round((person2percent + Number.EPSILON) * 100) / 100}%)`;
+            }
             document.getElementById("person1ResultContainer").style.background = "linear-gradient(white " + (100 - person1percent) + "% , green " + (100 - person1percent) + "%, green)";
             document.getElementById("person2ResultContainer").style.background = "linear-gradient(white " + (100 - person2percent) + "% , green " + (100 - person2percent) + "%, green)";
-            
+        }
+            break;
 
         default:
             console.log("Unknown message type: " + msg.type);
@@ -134,11 +143,11 @@ let fakeMsg = {
     data: {
         question: "Question",
         person1: {
-            username: "Person 1",
+            name: "Person 1",
             votes: 10
         },
         person2: {
-            username: "Person 2",
+            name: "Person 2",
             votes: 5
         },
         totalVotes: 15
@@ -147,7 +156,7 @@ let fakeMsg = {
 let person1percent = (fakeMsg.data.person1.votes / fakeMsg.data.totalVotes) * 100;
 let person2percent = (fakeMsg.data.person2.votes / fakeMsg.data.totalVotes) * 100;
 //Math.round((num + Number.EPSILON) * 100) / 100 rounds to 2 decimal places
-document.getElementById("person1Result").innerHTML = fakeMsg.data.person1.username + ": " + Math.round((person1percent + Number.EPSILON) * 100) / 100+ "%";
-document.getElementById("person2Result").innerHTML = fakeMsg.data.person2.username + ": " + Math.round((person2percent + Number.EPSILON) * 100) / 100+ "%";
+document.getElementById("person1Result").innerHTML = fakeMsg.data.person1.name + ": " + Math.round((person1percent + Number.EPSILON) * 100) / 100+ "%";
+document.getElementById("person2Result").innerHTML = fakeMsg.data.person2.name + ": " + Math.round((person2percent + Number.EPSILON) * 100) / 100+ "%";
 document.getElementById("person1ResultContainer").style.background = "linear-gradient(white " + (100 - person1percent) + "% , green " + (100 - person1percent) + "%, green)";
 document.getElementById("person2ResultContainer").style.background = "linear-gradient(white " + (100 - person2percent) + "% , green " + (100 - person2percent) + "%, green)";*/

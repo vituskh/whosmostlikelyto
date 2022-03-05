@@ -27,7 +27,7 @@
 .flexGame {
   flex: 6;
   min-width: 50%;
-
+  text-align: center;
 }
 
 .name {
@@ -79,3 +79,6 @@
   text-align: center;
 }
 
+#afterVote {
+  text-align: center;
+}
