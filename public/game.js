@@ -40,7 +40,21 @@ socket.onmessage = (e) => {
                         show(document.getElementById("lobby"));
                     }
                 }
+            } else if (msg.data.from === "vote") {
+                if (msg.data.result === true) {
+                    hide(document.getElementById("question"));
+                    show(document.getElementById("afterVote"));
+                    document.getElementById("publicVotingMsg").textContent = (
+                        msg.data.publicVoting ?
+                        "Der er public voting på - alle kan se hvem der har stemt på hvem" :
+                        "Der er ikke public voting på."
+                    )
+                document.getElementById("votedOn").textContent = msg.data.votedOn;
+                } else {
+                    alert("Voting error: " + msg.data.error);
+                }
             }
+
             break;
         case "showQuestion":
             if (myName !== "") {
@@ -61,11 +75,13 @@ socket.onmessage = (e) => {
             
             hide(document.getElementById("question"));
             show(document.getElementById("questionResults"));
+            hide(document.getElementById("afterVote"));
+
             document.getElementById("questionResultText").innerHTML = msg.data.question;
             let person1percent = (msg.data.person1.votes / msg.data.totalVotes) * 100;
             let person2percent = (msg.data.person2.votes / msg.data.totalVotes) * 100;
             //Math.round((num + Number.EPSILON) * 100) / 100 rounds to 2 decimal places
-            if(msg.data.publicVoters === true){
+            if(msg.data.publicVoting === true){
                 document.getElementById("person1Result").innerHTML = `${msg.data.person1.name} (${Math.round((person1percent + Number.EPSILON) * 100) / 100}%)<br><br>
                 Voters: ${msg.data.person1.voters.join("<br> ")}`;
                 document.getElementById("person2Result").innerHTML = `${msg.data.person2.name} (${Math.round((person2percent + Number.EPSILON) * 100) / 100}%)<br><br>

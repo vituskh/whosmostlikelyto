@@ -1,6 +1,5 @@
 /*
 TODO
-  - Screen when voted
   - Aesthetics
   - Playtest
   - Add more questions
@@ -19,7 +18,7 @@ let currentVotes = {};
 let currentQuestion = ""
 let questionTimeout;
 let possibleVoters; 
-let publicVoters
+let publicVoting
 let questionInProgress = false;
 
 process.on("message", (message) => {
@@ -103,7 +102,7 @@ function nextQuestion() {
     currentVotes = {}
     currentVotes[p1] = {votes: 0, voters: [], name: players.get(p1).name};
     currentVotes[p2] = {votes: 0, voters: [], name: players.get(p2).name};
-    publicVoters = Math.random() < config.PUBLIC_VOTING_PERCENTAGE / 100;
+    publicVoting = Math.random() < config.PUBLIC_VOTING_PERCENTAGE / 100;
     let message = {
         type: 'showQuestion',
         data: {
@@ -134,10 +133,10 @@ function showQuestionResults() {
         data: {
             question: currentQuestion,
             totalVotes: Object.values(currentVotes).reduce((a, b) => a + b.votes, 0),
-            publicVoters: publicVoters,
+            publicVoting: publicVoting,
         }
     }
-    if (publicVoters) {
+    if (publicVoting) {
         message.data.person1 = {name: currentVotes[p1ID].name, votes: currentVotes[p1ID].votes, voters: currentVotes[p1ID].voters};
         message.data.person2 = {name: currentVotes[p2ID].name, votes: currentVotes[p2ID].votes, voters: currentVotes[p2ID].voters};
     } else {
@@ -194,7 +193,7 @@ wsServer.on('request', (request) => {
                         currentVotes[msg.data].votes++;
                         currentVotes[msg.data].voters.push(thisPlayer.name);
                         thisPlayer.voted = true;
-                        connection.send(JSON.stringify({ type: 'return', data: { from: "vote", result: true, publicVoters: publicVoters } }));
+                        connection.send(JSON.stringify({ type: 'return', data: { from: "vote", result: true, publicVoting: publicVoting, votedOn: currentVotes[msg.data].name } }));
 
                         console.log(Object.values(currentVotes).reduce((a, b) => a + b.votes, 0), possibleVoters)
 
