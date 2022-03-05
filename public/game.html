@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hvem i dette rum?</title>
+    <link rel="stylesheet" href="./game.css">
+</head>
+<body>
+    <div class="parentFlex">
+        <div class="flexGame" id="loginScreen">
+            <form class="centered" onsubmit="setName(this.name.value); return false;" action="#">
+                <input type="text" name="name" placeholder="Indtast dit navn">
+                <input type="submit" value="Join">
+            </form>
+        </div>
+        <div hidden class="hidden flexGame" id="lobby">
+            <div style="display: block;">
+                <h1>Du er logget ind som <span class="name"></span></h1>
+                <form onsubmit="setName(this.name.value); return false;" action="#">
+                    <input type="text" name="name" placeholder="Skift navn?">
+                    <input type="submit" value="Join">
+                </form>
+
+            </div>
+        </div>
+        <div hidden class="hidden flexGame" id="question">
+            <!--todo-->
+            <h1 id="questionText"></h1>
+            <span id="personContainer">
+                <span id="person1Container">
+                    <p id="person1"></p>
+                    <button onclick="vote(voteIds.person1)">Vote</button>
+                </span>
+                <span id="person2Container">
+                    <p id="person2"></p>
+                    <button onclick="vote(voteIds.person2)">Vote</button>
+                </span>
+
+            </span>
+        </div>
+        <div hidden class="hidden flexGame" id="questionResults">
+            <h1 id="questionResultText"></h1>
+            <span id="personResultsContainer">
+                <!--Bar graph with the percentages-->
+                <span id="person1ResultContainer">
+                    <p id="person1Result"></p>
+                </span>
+                <span id="person2ResultContainer">
+                    <p id="person2Result"></p>
+                </span>
+            </span>
+        </div>
+        <div id="flexPlayerList">
+            <strong>Spillere</strong>
+            <ul id="playerList"> 
+
+            </ul>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Panel</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+    Node version <span id="node-version"></span>
+    Chromium version <span id="chrome-version"></span>
+    Electron version <span id="electron-version"></span>
+
+    <nav id="controlpanel">
+        Admin Control Panel
+        <button onclick="window.electronAPI.nextQuestion()" id="next">Næste spørgsmål</button>
+        <button onclick="window.electronAPI.startGame()" id="start">Start spil</button>
+        <input type="text" name="ip" id="ipInput" value="192.168.1.116:8080"> <button onclick="document.getElementById('game').src='http:\/\/' + document.getElementById('ipInput').value">update</button>
+    </nav>
+    
+    <iframe id="game" src="" frameborder="0" ></iframe>
+
+    <script src="./renderer.js"></script>
+</body>
+</html>
