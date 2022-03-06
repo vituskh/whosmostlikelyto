@@ -4,7 +4,6 @@ TODO
   - Playtest
   - Add more questions
 
-
 */
 
 const http = require('http');
@@ -146,7 +145,9 @@ function showQuestionResults() {
     wsServer.broadcast(JSON.stringify(message));
 }
 
-
+function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
 wsServer.on('request', (request) => {
     const connection = request.accept(null, request.origin);
     const id = createID();
@@ -172,6 +173,7 @@ wsServer.on('request', (request) => {
                         connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name cannot be empty" } }));
                         return;
                     }
+                    msg.data = escapeHtml(msg.data);
                     if (thisPlayer.name !== undefined) {
                         names.splice(names.indexOf(thisPlayer.name), 1);
                     }
