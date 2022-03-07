@@ -7,6 +7,7 @@ var voteIds = {
     person1: "aaaaa",
     person2: "bbbbb"
 }
+let timerInterval;
 
 
 socket.onopen = (e) => {
@@ -70,6 +71,14 @@ socket.onmessage = (e) => {
                 document.getElementById("person2").innerHTML = msg.data.person2.name;
                 voteIds.person1 = msg.data.person1.id;
                 voteIds.person2 = msg.data.person2.id;
+                let time = msg.data.time;
+                let timers = document.getElementsByClassName("questionTimer");
+                timerInterval = setInterval(() => {
+                    time--;
+                    for (const element of timers) {
+                        element.textContent = time + " sekunder tilbage";
+                    }
+                }, 1000);
             }
             break;
         case "showQuestionResults":
@@ -78,6 +87,8 @@ socket.onmessage = (e) => {
             hide(document.getElementById("question"));
             show(document.getElementById("questionResults"));
             hide(document.getElementById("afterVote"));
+
+            clearInterval(timerInterval);
 
             document.getElementById("questionResultText").innerHTML = msg.data.question;
             let person1percent = (msg.data.person1.votes / msg.data.totalVotes) * 100;

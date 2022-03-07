@@ -3,7 +3,6 @@ TODO
   - Aesthetics
   - Playtest
   - Add more questions
-  - Timer
   - bug https://discord.com/channels/@me/950393562074320926/950468848002416720
   - Pronouns fix
   - Show names in start lobby mobile
@@ -113,7 +112,8 @@ function nextQuestion() {
         data: {
             question: currentQuestion,
             person1: {id: p1, name: players.get(p1).name},
-            person2: {id: p2, name: players.get(p2).name}
+            person2: {id: p2, name: players.get(p2).name},
+            time: config.QUESTION_TIME,
         }
     }
     console.log(message);
