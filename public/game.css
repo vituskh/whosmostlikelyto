@@ -82,3 +82,17 @@
 #afterVote {
   text-align: center;
 }
+
+@media (max-width: 900px) {
+  /*
+  .parentFlex {
+    flex-direction: column;
+  }
+  #flexPlayerList {
+    max-height: 20vh;
+    overflow: scroll;
+  }*/
+  #flexPlayerList {
+    display: none;
+  }
+}

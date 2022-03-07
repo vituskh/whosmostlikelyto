@@ -3,7 +3,15 @@ TODO
   - Aesthetics
   - Playtest
   - Add more questions
-
+  - Timer
+  - bug https://discord.com/channels/@me/950393562074320926/950468848002416720
+  - Pronouns fix
+  - Show names in start lobby mobile
+  - Failure messages client side
+  - Names should be case insensitive
+  - Recent questions should not be repeated
+  - "Who will" questions
+  - More modes?
 */
 
 const http = require('http');
@@ -11,7 +19,6 @@ const WebSocketServer = require('websocket').server;
 const fs = require('fs');
 const path = require('path');
 const serveStatic = require('serve-static');
-const { markAsUntransferable } = require('worker_threads');
 var serve = serveStatic(__dirname + '/public', { 'index': ['game.html'] });
 let currentVotes = {};
 let currentQuestion = ""
