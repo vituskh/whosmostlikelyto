@@ -7,7 +7,6 @@ TODO
   - bug https://discord.com/channels/@me/950393562074320926/950468848002416720
   - Pronouns fix
   - Show names in start lobby mobile
-  - Failure messages client side
   - Names should be case insensitive
   - Recent questions should not be repeated
   - "Who will" questions
@@ -169,15 +168,15 @@ wsServer.on('request', (request) => {
             switch (msg.type) {
                 case "setName":
                     if (names.indexOf(msg.data) !== -1) {
-                        connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name already taken" } }));
+                        connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Navn taget" } }));
                         return;
                     }
                     if (msg.data.length > 30) {
-                        connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name too long" } }));
+                        connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name for langt" } }));
                         return;
                     }
                     if (msg.data === "") {
-                        connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name cannot be empty" } }));
+                        connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Name kan ikke være tomt" } }));
                         return;
                     }
                     msg.data = escapeHtml(msg.data);

@@ -39,6 +39,8 @@ socket.onmessage = (e) => {
                         hide(document.getElementById("loginScreen"));
                         show(document.getElementById("lobby"));
                     }
+                } else {
+                    setTimeout(function() { alert(msg.data.result); }, 1);
                 }
             } else if (msg.data.from === "vote") {
                 if (msg.data.result === true) {
