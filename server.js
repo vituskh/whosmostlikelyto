@@ -6,7 +6,6 @@ TODO
   - bug https://discord.com/channels/@me/950393562074320926/950468848002416720
   - Pronouns fix
   - Show names in start lobby mobile
-  - Names should be case insensitive
   - Recent questions should not be repeated
   - "Who will" questions
   - More modes?
@@ -154,6 +153,9 @@ function showQuestionResults() {
 function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+function containsCaseInsensitive(array, query) {
+    return array.findIndex(item => query.toLocaleLowerCase() === item.toLocaleLowerCase());
+}
 wsServer.on('request', (request) => {
     const connection = request.accept(null, request.origin);
     const id = createID();
@@ -167,7 +169,10 @@ wsServer.on('request', (request) => {
             let msg = JSON.parse(message.utf8Data);
             switch (msg.type) {
                 case "setName":
-                    if (names.indexOf(msg.data) !== -1) {
+                    //remove characters not in danish alphabet, numbers and space
+                    msg.data = msg.data.replace(/[^a-zA-Z0-9æøåÆØÅ ]/g, "");
+                    msg.data = msg.data.trim();
+                    if (containsCaseInsensitive(names, msg.data) !== -1) {
                         connection.send(JSON.stringify({ type: 'return', data: { from: "setName", result: "Navn taget" } }));
                         return;
                     }
