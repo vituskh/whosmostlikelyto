@@ -20,7 +20,7 @@ var serve = serveStatic(__dirname + '/public', { 'index': ['game.html'] });
 let currentVotes = {};
 let currentQuestion = ""
 let questionTimeout;
-let possibleVoters; 
+let possibleVoters;
 let publicVoting
 let questionInProgress = false;
 
@@ -37,6 +37,28 @@ process.on("message", (message) => {
     }
 })
 
+let ip;
+{
+    const { networkInterfaces } = require('os');
+
+    const nets = networkInterfaces();
+    const results = Object.create(null); // Or just '{}', an empty object
+
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+            if (net.family === 'IPv4' && !net.internal) {
+                if (!results[name]) {
+                    results[name] = [];
+                }
+                results[name].push(net.address);
+            }
+        }
+    }
+    ip = results['en0'] || results["Wi-Fi"] || results["eth0"] || results["wlan0"] || undefined
+    ip = ip[0] || undefined
+    console.log(`IP: ${ip}`)
+}
 
 console.log("Starting server script...");
 
@@ -58,7 +80,7 @@ const server = http.createServer((req, res) => {
     });
 });
 
-server.listen(config.PORT, config.IP)
+server.listen(config.PORT, ip || config.FALLBACK_IP)
 
 const wsServer = new WebSocketServer({
     httpServer: server,
@@ -103,15 +125,15 @@ function nextQuestion() {
         p2 = getRandomKeyFromMap(players);
     } while (p1 === p2);
     currentVotes = {}
-    currentVotes[p1] = {votes: 0, voters: [], name: players.get(p1).name};
-    currentVotes[p2] = {votes: 0, voters: [], name: players.get(p2).name};
+    currentVotes[p1] = { votes: 0, voters: [], name: players.get(p1).name };
+    currentVotes[p2] = { votes: 0, voters: [], name: players.get(p2).name };
     publicVoting = Math.random() < config.PUBLIC_VOTING_PERCENTAGE / 100;
     let message = {
         type: 'showQuestion',
         data: {
             question: currentQuestion,
-            person1: {id: p1, name: players.get(p1).name},
-            person2: {id: p2, name: players.get(p2).name},
+            person1: { id: p1, name: players.get(p1).name },
+            person2: { id: p2, name: players.get(p2).name },
             time: config.QUESTION_TIME,
         }
     }
@@ -119,7 +141,7 @@ function nextQuestion() {
     console.log(currentVotes)
     wsServer.broadcast(JSON.stringify(message));
     questionTimeout = setTimeout(() => {
-        showQuestionResults();    
+        showQuestionResults();
     }, config.QUESTION_TIME * 1000);
 
 }
@@ -141,11 +163,11 @@ function showQuestionResults() {
         }
     }
     if (publicVoting) {
-        message.data.person1 = {name: currentVotes[p1ID].name, votes: currentVotes[p1ID].votes, voters: currentVotes[p1ID].voters};
-        message.data.person2 = {name: currentVotes[p2ID].name, votes: currentVotes[p2ID].votes, voters: currentVotes[p2ID].voters};
+        message.data.person1 = { name: currentVotes[p1ID].name, votes: currentVotes[p1ID].votes, voters: currentVotes[p1ID].voters };
+        message.data.person2 = { name: currentVotes[p2ID].name, votes: currentVotes[p2ID].votes, voters: currentVotes[p2ID].voters };
     } else {
-        message.data.person1 = {name: currentVotes[p1ID].name, votes: currentVotes[p1ID].votes};
-        message.data.person2 = {name: currentVotes[p2ID].name, votes: currentVotes[p2ID].votes};
+        message.data.person1 = { name: currentVotes[p1ID].name, votes: currentVotes[p1ID].votes };
+        message.data.person2 = { name: currentVotes[p2ID].name, votes: currentVotes[p2ID].votes };
     }
     wsServer.broadcast(JSON.stringify(message));
 }
@@ -161,7 +183,7 @@ wsServer.on('request', (request) => {
     const id = createID();
     players.set(id, { connection: connection, name: undefined, allowed: false, voted: false });
     let thisPlayer = players.get(id);
-    console.log("New connection: " + id);''
+    console.log("New connection: " + id); ''
     connection.sendUTF(JSON.stringify({ type: "playerList", data: names }));
     connection.on('message', (message) => {
         if (message.type === 'utf8') {
@@ -229,15 +251,15 @@ wsServer.on('request', (request) => {
                     nextQuestion();
                     break;
                 case "showQuestionResults":
-                    showQuestionResults() 
+                    showQuestionResults()
                     break;
                 default:
                     connection.send(JSON.stringify({ type: 'return', data: { from: "unknown", result: "Unknown message" } }));
                     break;
-                }
-
             }
-        })
+
+        }
+    })
 
     connection.on('close', (connection) => {
         console.log('Connection closed with id: ' + id + ', name: ' + thisPlayer.name);
@@ -260,8 +282,15 @@ wsServer.on('request', (request) => {
 })
 
 module.exports = {
-    startGame, nextQuestion, showQuestionResults
+    startGame, nextQuestion, showQuestionResults, ip
 }
+
+try {
+    alert("Server started on " + ip);
+} catch (error) {
+    
+}
+    
 
 //Dev control from CLI
 process.stdin.on('data', (data) => {
@@ -297,7 +326,7 @@ process.stdin.on('data', (data) => {
                     name: player.name,
                     allowed: player.allowed,
                     voted: player.voted
-                    
+
                 }
                 console.log(info);
             } else if (data.startsWith("eval")) {

@@ -19,5 +19,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     startGame: () => {
         ipcRenderer.send('startGame')
+    },
+    setIp: (ip) => {
+        ipcRenderer.send('setIp', ip)
     }
 })

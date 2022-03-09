@@ -27,7 +27,11 @@ const createWindow = () => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
 })
-
+forked.on("message", (msg) => {
+    if (msg.type === "setIp") {
+        ipcMain.emit("setIp", msg.data);
+    }
+})
 app.whenReady().then(() => {
     createWindow();
 
