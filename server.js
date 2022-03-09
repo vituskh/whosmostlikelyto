@@ -6,7 +6,6 @@ TODO
   - bug https://discord.com/channels/@me/950393562074320926/950468848002416720
   - Pronouns fix
   - Show names in start lobby mobile
-  - Recent questions should not be repeated
   - "Who will" questions
   - More modes?
 */
@@ -23,6 +22,7 @@ let questionTimeout;
 let possibleVoters;
 let publicVoting
 let questionInProgress = false;
+let recentQuestions = [];
 
 process.on("message", (message) => {
     switch (message) {
@@ -108,7 +108,8 @@ function startGame() {
     console.log("startGame");
     nextQuestion()
 }
-function nextQuestion() {
+function getQuestionParts(question) {
+    
     currentQuestion = questions[Math.floor(Math.random() * questions.length)];
     possibleVoters = 0
     for (const [key, val] of players) {
@@ -124,6 +125,21 @@ function nextQuestion() {
     do {
         p2 = getRandomKeyFromMap(players);
     } while (p1 === p2);
+    
+    return {currentQuestion, p1, p2};
+}
+function nextQuestion() {
+    let currentQuestion, p1, p2;
+    //Sørger for at der ikke bliver spurgt om samme spørgsmål mere end en gang
+    do {
+        ({currentQuestion, p1, p2} = getQuestionParts())
+
+    } while (recentQuestions.includes(`${currentQuestion} ${p1} ${p2}`))
+    if (recentQuestions.length >= config.RECENT_QUESTIONS_LIMIT) {
+        recentQuestions.shift()
+    }
+    recentQuestions.push(`${currentQuestion} ${p1} ${p2}`)
+
     currentVotes = {}
     currentVotes[p1] = { votes: 0, voters: [], name: players.get(p1).name };
     currentVotes[p2] = { votes: 0, voters: [], name: players.get(p2).name };
