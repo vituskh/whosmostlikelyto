@@ -4,7 +4,6 @@ TODO
   - Playtest
   - Add more questions
   - bug https://discord.com/channels/@me/950393562074320926/950468848002416720
-  - Pronouns fix
   - Show names in start lobby mobile
   - "Who will" questions
   - More modes?
